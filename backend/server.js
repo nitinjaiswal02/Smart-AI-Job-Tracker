@@ -1,0 +1,60 @@
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import dotenv from 'dotenv';
+import { notFound, errorHandler } from './middleware/errorHandler.js';
+
+// Load variables from .env into process.env. Must happen before we read
+// any of them below (e.g. process.env.PORT).
+dotenv.config();
+
+const app = express();
+
+// --- Middleware (runs on EVERY request, in this order) ---
+
+// helmet sets a bunch of security-related HTTP headers for you (things like
+// disabling X-Powered-By so we don't advertise "this is an Express app" to
+// attackers). One line, real protection.
+app.use(helmet());
+
+// Our React app will run on a different origin (different port during dev,
+// different domain in production). Browsers block cross-origin requests by
+// default — cors() sends the headers that tell the browser "this is allowed."
+app.use(cors());
+
+// Without this, req.body would be undefined for any JSON the client sends.
+// This parses the raw request body into a usable JavaScript object.
+app.use(express.json());
+
+// Logs every request (method, path, status, response time) to the console.
+// Only in development — production servers usually ship logs elsewhere.
+if (process.env.NODE_ENV !== 'production') {
+  app.use(morgan('dev'));
+}
+
+// --- Routes ---
+
+// A health-check endpoint. This isn't for users — it's for YOU (and later,
+// for deployment platforms / uptime monitors) to confirm the server is alive
+// without hitting any real business logic.
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Feature routes get mounted here as we build them in later phases, e.g.:
+// app.use('/api/auth', authRoutes);
+// app.use('/api/applications', applicationRoutes);
+
+// --- Error handling (must be registered LAST) ---
+app.use(notFound);
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+});
