@@ -3,13 +3,19 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
+
 
 // Load variables from .env into process.env. Must happen before we read
 // any of them below (e.g. process.env.PORT).
 dotenv.config();
 
+connectDB();
+
+
 const app = express();
+
 
 // --- Middleware (runs on EVERY request, in this order) ---
 
