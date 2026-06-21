@@ -5,6 +5,8 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
+import cookieParser from 'cookie-parser';
+import authRoutes from './routes/authRoutes.js';
 
 
 // Load variables from .env into process.env. Must happen before we read
@@ -25,9 +27,19 @@ const app = express();
 app.use(helmet());
 
 // Our React app will run on a different origin (different port during dev,
-// different domain in production). Browsers block cross-origin requests by
-// default — cors() sends the headers that tell the browser "this is allowed."
-app.use(cors());
+// different domain in production). `credentials: true` is required for the
+// browser to actually send/receive our httpOnly JWT cookie across origins;
+// `origin` must be an explicit URL (not '*') for credentialed requests to
+// work at all — that's a browser rule.
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    credentials: true,
+  })
+);
+
+// Parses the "jwt" cookie off incoming requests into req.cookies.
+app.use(cookieParser());
 
 // Without this, req.body would be undefined for any JSON the client sends.
 // This parses the raw request body into a usable JavaScript object.
@@ -52,7 +64,8 @@ app.get('/api/health', (req, res) => {
 });
 
 // Feature routes get mounted here as we build them in later phases, e.g.:
-// app.use('/api/auth', authRoutes);
+// Feature routes
+app.use('/api/auth', authRoutes);
 // app.use('/api/applications', applicationRoutes);
 
 // --- Error handling (must be registered LAST) ---
