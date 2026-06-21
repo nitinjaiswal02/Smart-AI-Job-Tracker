@@ -7,6 +7,7 @@ import connectDB from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/authRoutes.js';
+import applicationRoutes from './routes/applicationRoutes.js';
 
 
 // Load variables from .env into process.env. Must happen before we read
@@ -66,7 +67,8 @@ app.get('/api/health', (req, res) => {
 // Feature routes get mounted here as we build them in later phases, e.g.:
 // Feature routes
 app.use('/api/auth', authRoutes);
-// app.use('/api/applications', applicationRoutes);
+
+app.use('/api/applications', applicationRoutes);
 
 // --- Error handling (must be registered LAST) ---
 app.use(notFound);
