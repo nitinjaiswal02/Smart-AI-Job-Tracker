@@ -1,25 +1,67 @@
-// This previews the status color-coding we'll wire up to real data in
-// Phase 7 — each status gets a consistent color across the whole app.
-const statusStyles = {
-  applied: 'bg-blue-50 text-blue-700',
-  interviewing: 'bg-amber-50 text-amber-700',
-  offer: 'bg-emerald-50 text-emerald-700',
-  rejected: 'bg-rose-50 text-rose-700',
-};
+import { useState, useEffect } from 'react';
+import { getApplications } from '../api/applications.js';
+import ApplicationForm from '../components/ApplicationForm.jsx';
+import ApplicationCard from '../components/ApplicationCard.jsx';
+import Button from '../components/Button.jsx';
 
 const Dashboard = () => {
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    const loadApplications = async () => {
+      const { data } = await getApplications();
+      setApplications(data.applications);
+      setLoading(false);
+    };
+    loadApplications();
+  }, []);
+
+  const handleCreated = (newApp) => {
+    setApplications([newApp, ...applications]); // newest first, no extra fetch needed
+    setShowForm(false);
+  };
+
+  const handleUpdated = (updatedApp) => {
+    setApplications(applications.map((app) => (app._id === updatedApp._id ? updatedApp : app)));
+  };
+
+  const handleDeleted = (id) => {
+    setApplications(applications.filter((app) => app._id !== id));
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
-      <h2 className="text-2xl font-bold text-slate-900">Your Applications</h2>
-      <p className="mt-1 text-sm text-slate-600">Full tracking table coming in Phase 7.</p>
-
-      <div className="mt-8 flex flex-wrap gap-3">
-        {Object.entries(statusStyles).map(([status, classes]) => (
-          <span key={status} className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${classes}`}>
-            {status}
-          </span>
-        ))}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">Your applications</h2>
+          <p className="mt-1 text-sm text-slate-600">{applications.length} total</p>
+        </div>
+        <Button variant="primary" onClick={() => setShowForm(!showForm)}>
+          {showForm ? 'Close' : '+ Add application'}
+        </Button>
       </div>
+
+      {showForm && (
+        <div className="mt-6">
+          <ApplicationForm onCreated={handleCreated} onCancel={() => setShowForm(false)} />
+        </div>
+      )}
+
+      {loading ? (
+        <p className="mt-8 text-sm text-slate-500">Loading...</p>
+      ) : applications.length === 0 ? (
+        <p className="mt-8 rounded-lg bg-slate-50 p-6 text-center text-sm text-slate-500">
+          No applications yet. Add your first one to get started.
+        </p>
+      ) : (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {applications.map((app) => (
+            <ApplicationCard key={app._id} application={app} onUpdated={handleUpdated} onDeleted={handleDeleted} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
