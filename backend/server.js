@@ -8,6 +8,7 @@ import { notFound, errorHandler } from './middleware/errorHandler.js';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/authRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
 
 
 // Load variables from .env into process.env. Must happen before we read
@@ -69,6 +70,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 
 app.use('/api/applications', applicationRoutes);
+
+app.use('/api/ai', aiRoutes);
 
 // --- Error handling (must be registered LAST) ---
 app.use(notFound);
