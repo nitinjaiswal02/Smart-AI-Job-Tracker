@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
 import Button from '../components/Button.jsx';
 import { getApplications } from '../api/applications.js';
-import { useEffect } from 'react';
+import { useEffect } from 'react'; 
 
 const TABS = [
   { id: 'score', label: 'Resume Score' },
@@ -12,7 +12,7 @@ const TABS = [
 ];
 
 const ResumeAI = () => {
-  const [activeTab, setActiveTab] = useState('score');
+  const [activeTab, setActiveTab] = useState('score'); 
   const [resumeText, setResumeText] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [applications, setApplications] = useState([]);
@@ -23,7 +23,7 @@ const ResumeAI = () => {
 
   // For the follow-up tab, we need the user's applications list so they
   // can pick which one to generate an email for.
-  useEffect(() => {
+  useEffect(() => { // 
     const loadApps = async () => {
       try {
         const { data } = await getApplications();
@@ -84,7 +84,7 @@ const ResumeAI = () => {
       setLoading(false);
     }
   };
-
+  //
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
       <div>

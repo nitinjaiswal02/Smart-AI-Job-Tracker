@@ -1,84 +1,63 @@
+import http from 'http';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import connectDB from './config/db.js';
-import { notFound, errorHandler } from './middleware/errorHandler.js';
 import cookieParser from 'cookie-parser';
+import connectDB from './config/db.js';
+import { initSocket } from './config/socket.js';
 import authRoutes from './routes/authRoutes.js';
 import applicationRoutes from './routes/applicationRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import { notFound, errorHandler } from './middleware/errorHandler.js';
 
-
-// Load variables from .env into process.env. Must happen before we read
-// any of them below (e.g. process.env.PORT).
 dotenv.config();
 
 connectDB();
 
-
 const app = express();
 
+// Create an explicit HTTP server from the Express app.
+// Previously Express created this internally when we called app.listen().
+// We need direct access to the httpServer object so Socket.io can attach
+// to it — both Express and Socket.io share the same port this way.
+const httpServer = http.createServer(app);
 
-// --- Middleware (runs on EVERY request, in this order) ---
+// Initialize Socket.io on the same HTTP server
+initSocket(httpServer);
 
-// helmet sets a bunch of security-related HTTP headers for you (things like
-// disabling X-Powered-By so we don't advertise "this is an Express app" to
-// attackers). One line, real protection.
-app.use(helmet());
-
-// Our React app will run on a different origin (different port during dev,
-// different domain in production). `credentials: true` is required for the
-// browser to actually send/receive our httpOnly JWT cookie across origins;
-// `origin` must be an explicit URL (not '*') for credentialed requests to
-// work at all — that's a browser rule.
+// --- Middleware ---
+app.use(helmet()); // it sets various HTTP headers to help protect the app from well-known web vulnerabilities by default.
 app.use(
   cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
     credentials: true,
   })
 );
-
-// Parses the "jwt" cookie off incoming requests into req.cookies.
 app.use(cookieParser());
-
-// Without this, req.body would be undefined for any JSON the client sends.
-// This parses the raw request body into a usable JavaScript object.
 app.use(express.json());
-
-// Logs every request (method, path, status, response time) to the console.
-// Only in development — production servers usually ship logs elsewhere.
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'production') { // we use morgan only in development mode to log HTTP requests to the console for debugging purposes. In production, we might want to use a more robust logging solution or disable logging altogether for performance reasons.
   app.use(morgan('dev'));
 }
 
 // --- Routes ---
-
-// A health-check endpoint. This isn't for users — it's for YOU (and later,
-// for deployment platforms / uptime monitors) to confirm the server is alive
-// without hitting any real business logic.
 app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-  });
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Feature routes get mounted here as we build them in later phases, e.g.:
-// Feature routes
 app.use('/api/auth', authRoutes);
-
 app.use('/api/applications', applicationRoutes);
-
 app.use('/api/ai', aiRoutes);
 
-// --- Error handling (must be registered LAST) ---
-app.use(notFound);
-app.use(errorHandler);
+// --- Error handling ---
+app.use(notFound); // 404 handler for unknown routes
+app.use(errorHandler); // centralized error handler for all routes and middleware
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
-app.listen(PORT, () => {
+// httpServer.listen instead of app.listen — same result but now
+// Socket.io is also listening on this port alongside Express
+httpServer.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });

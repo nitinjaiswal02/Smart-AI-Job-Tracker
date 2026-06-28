@@ -1,4 +1,5 @@
 import Application from '../models/Application.js';
+import { getIO } from '../config/socket.js';
 
 // Creates a new application for the LOGGED-IN user. We never trust a
 // `user` field from the request body for this — req.user._id (set by the
@@ -123,6 +124,16 @@ const updateApplication = async (req, res) => {
   // pre-save hooks on Application still run on this update.
   const updated = await application.save();
 
+  // Broadcast the update to all of this user's connected browser tabs/devices.
+  // getIO().to(userId) sends ONLY to sockets in that user's room —
+  // other users' dashboards are completely unaffected.
+  try {
+    getIO().to(req.user._id.toString()).emit('application:updated', updated);
+  } catch (e) {
+    // If socket server isn't available, the HTTP response still succeeds.
+    // Real-time is a "nice to have" enhancement, not a hard dependency.
+  }
+
   res.status(200).json(updated);
 };
 
@@ -166,6 +177,15 @@ const addComment = async (req, res) => {
 
   application.comments.push({ author, text });
   await application.save();
+
+  try { // Broadcast the new comment to all of this user's connected browser tabs/devices.
+    getIO()
+      .to(req.user._id.toString())
+      .emit('application:comment-added', {
+        applicationId: application._id,
+        comment: application.comments[application.comments.length - 1],
+      });
+  } catch (e) {}
 
   res.status(201).json(application.comments[application.comments.length - 1]);
 };
