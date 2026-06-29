@@ -46,29 +46,6 @@ if (process.env.NODE_ENV !== 'production') { // we use morgan only in developmen
 
 // --- Routes ---
 
-// TEMPORARY TEST ROUTE — remove before production
-app.get('/api/test-cron', async (req, res) => {
-  const Application = (await import('./models/Application.js')).default;
-  const sendEmail = (await import('./utils/sendEmail.js')).default;
-  const { getIO } = await import('./config/socket.js');
-
-  // Test email sending
-  await sendEmail({
-    to: process.env.GMAIL_USER,
-    subject: 'Smart Job Tracker — Cron Test',
-    html: '<h2>Cron job email is working!</h2><p>If you see this, nodemailer is configured correctly.</p>',
-  });
-
-  // Test socket notification
-  try {
-    getIO().emit('notification:interview-reminder', {
-      message: 'Test reminder: Your interview at Google is today!',
-    });
-  } catch(e) {}
-
-  res.json({ message: 'Test email sent and socket notification broadcast' });
-});
-
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
