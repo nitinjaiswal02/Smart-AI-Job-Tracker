@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
     const checkSession = async () => {
       try {
         const { data } = await fetchCurrentUser();
+        if (data.token) localStorage.setItem('token', data.token); 
         setUser(data);
       } catch (err) {
         setUser(null);
@@ -26,19 +27,22 @@ export const AuthProvider = ({ children }) => {
   }, []); // empty dependency array = run once, when the component first mounts
 
   const login = async (credentials) => {
-    const { data } = await loginUser(credentials);
-    setUser(data);
-  };
+  const { data } = await loginUser(credentials);
+  if (data.token) localStorage.setItem('token', data.token);
+  setUser(data);
+};
 
-  const register = async (details) => {
-    const { data } = await registerUser(details);
-    setUser(data);
-  };
+const register = async (details) => {
+  const { data } = await registerUser(details);
+  if (data.token) localStorage.setItem('token', data.token);
+  setUser(data);
+};
 
-  const logout = async () => {
-    await logoutUser();
-    setUser(null);
-  };
+const logout = async () => {
+  await logoutUser();
+  localStorage.removeItem('token');
+  setUser(null);
+};
 
   return (
     <AuthContext.Provider value={{ user, loading, login, register, logout }}>

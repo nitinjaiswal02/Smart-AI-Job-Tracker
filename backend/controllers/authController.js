@@ -84,6 +84,7 @@ const getMe = (req, res) => {
     name: req.user.name,
     email: req.user.email,
     isPremium: req.user.isPremium,
+    token: req.cookies.jwt || null, // return the JWT from the cookie if it exists
   });
 };
 

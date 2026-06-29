@@ -1,15 +1,15 @@
-import { useState, useEffect, useCallback } from 'react';
-import { getApplications } from '../api/applications.js';
-import { useSocket } from '../context/SocketContext.jsx';
-import ApplicationForm from '../components/ApplicationForm.jsx';
-import ApplicationCard from '../components/ApplicationCard.jsx';
-import Button from '../components/Button.jsx';
+import { useState, useEffect, useCallback } from "react";
+import { getApplications } from "../api/applications.js";
+import { useSocket } from "../context/SocketContext.jsx";
+import ApplicationForm from "../components/ApplicationForm.jsx";
+import ApplicationCard from "../components/ApplicationCard.jsx";
+import Button from "../components/Button.jsx";
 
 const Dashboard = () => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const { connected, subscribe, unsubscribe } = useSocket(); // useSocket provides the current connection status and functions to subscribe/unsubscribe to real-time events.
+  const { subscribe, unsubscribe } = useSocket(); // useSocket provides the current connection status and functions to subscribe/unsubscribe to real-time events.
 
   useEffect(() => {
     const loadApplications = async () => {
@@ -26,7 +26,7 @@ const Dashboard = () => {
   // the useEffect below (because the dependency would always look "new").
   const handleApplicationUpdated = useCallback((updatedApp) => {
     setApplications((prev) =>
-      prev.map((app) => (app._id === updatedApp._id ? updatedApp : app))
+      prev.map((app) => (app._id === updatedApp._id ? updatedApp : app)),
     );
   }, []);
 
@@ -35,24 +35,22 @@ const Dashboard = () => {
       prev.map((app) =>
         app._id === applicationId
           ? { ...app, comments: [...app.comments, comment] }
-          : app
-      )
+          : app,
+      ),
     );
   }, []);
 
   // Subscribe to real-time events when socket is connected.
   // Cleanup (unsubscribe) runs when component unmounts or dependencies change.
   useEffect(() => {
-    if (!connected) return;
+  subscribe('application:updated', handleApplicationUpdated);
+  subscribe('application:comment-added', handleCommentAdded);
 
-    subscribe('application:updated', handleApplicationUpdated);
-    subscribe('application:comment-added', handleCommentAdded);
-
-    return () => {
-      unsubscribe('application:updated', handleApplicationUpdated);
-      unsubscribe('application:comment-added', handleCommentAdded);
-    };
-  }, [connected, subscribe, unsubscribe, handleApplicationUpdated, handleCommentAdded]);
+  return () => {
+    unsubscribe('application:updated', handleApplicationUpdated);
+    unsubscribe('application:comment-added', handleCommentAdded);
+  };
+}, [subscribe, unsubscribe, handleApplicationUpdated, handleCommentAdded]);
 
   const handleCreated = (newApp) => {
     setApplications([newApp, ...applications]);
@@ -60,7 +58,11 @@ const Dashboard = () => {
   };
 
   const handleUpdated = (updatedApp) => {
-    setApplications(applications.map((app) => (app._id === updatedApp._id ? updatedApp : app)));
+    setApplications(
+      applications.map((app) =>
+        app._id === updatedApp._id ? updatedApp : app,
+      ),
+    );
   };
 
   const handleDeleted = (id) => {
@@ -71,27 +73,22 @@ const Dashboard = () => {
     <div className="mx-auto max-w-6xl px-6 py-12">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Your applications</h2>
-          <div className="mt-1 flex items-center gap-2">
-            <p className="text-sm text-slate-600">{applications.length} total</p>
-            {/* Real-time connection indicator */}
-            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium
-              ${connected ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-              <span className={`h-1.5 w-1.5 rounded-full
-                ${connected ? 'bg-emerald-500' : 'bg-slate-400'}`}
-              />
-              {connected ? 'Live' : 'Offline'}
-            </span>
-          </div>
+          <h2 className="text-2xl font-bold text-slate-900">
+            Your applications
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">{applications.length} total</p>
         </div>
         <Button variant="primary" onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Close' : '+ Add application'}
+          {showForm ? "Close" : "+ Add application"}
         </Button>
       </div>
 
       {showForm && (
         <div className="mt-6">
-          <ApplicationForm onCreated={handleCreated} onCancel={() => setShowForm(false)} />
+          <ApplicationForm
+            onCreated={handleCreated}
+            onCancel={() => setShowForm(false)}
+          />
         </div>
       )}
 
