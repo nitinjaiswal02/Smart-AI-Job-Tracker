@@ -12,6 +12,7 @@ import applicationRoutes from './routes/applicationRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import initCronJobs from './utils/cronJobs.js'; // Import the function that initializes cron jobs
+import paymentRoutes from './routes/paymentRoutes.js'; 
 
 dotenv.config();
 
@@ -56,6 +57,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/payment', paymentRoutes); 
 
 // --- Error handling ---
 app.use(notFound); // 404 handler for unknown routes

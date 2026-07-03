@@ -30,6 +30,16 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false, // used in Phase 11 (monetization)
     },
+
+    aiCallsToday: { // its a counter to track how many AI calls the user has made today. This is useful for implementing rate limiting or usage tracking for AI features.
+      type: Number,
+      default: 0,
+    },
+    aiCallsDate: { // this field stores the date when the aiCallsToday counter was last reset. This is important for determining if a new day has started and whether the counter should be reset to 0.
+      type: Date,
+      default: Date.now,
+    },
+
   },
   {
     timestamps: true, // automatically adds createdAt and updatedAt fields
