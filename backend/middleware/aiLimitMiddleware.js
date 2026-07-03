@@ -1,4 +1,4 @@
-const FREE_DAILY_LIMIT = 5;
+const FREE_DAILY_LIMIT = 10;
 
 // This middleware runs BEFORE any AI controller — it checks whether the
 // user has exceeded their free daily limit before letting the (expensive)
@@ -7,9 +7,9 @@ const checkAILimit = async (req, res, next) => {
   const user = req.user;
 
   // Premium users skip this check entirely — unlimited access
-  if (user.isPremium) {
-    return next();
-  }
+//   if (user.isPremium) {
+//     return next();
+//   }
 
   // Check if it's a new day since the last recorded call — if so, reset
   // the counter. We compare just the DATE part, not the time.

@@ -36,12 +36,12 @@ const Navbar = () => {
               >
                 AI Analyzer
               </Link>
-              <Link
+              {/* <Link
                 to="/pricing"
                 className="text-sm font-medium text-slate-600 hover:text-slate-900"
               >
                 Pricing
-              </Link>
+              </Link> */}
               <span className="flex items-center gap-1.5 text-sm text-slate-500">
                 Hi, {user.name.split(" ")[0]}
                 {user.isPremium && (
