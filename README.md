@@ -28,11 +28,16 @@ Smart Job Tracker keeps every application organized, scores your resume against 
 ## 🚀 Live Demo
 
 🌐 **Frontend:** https://smart-ai-job-tracker.vercel.app
+<<<<<<< HEAD
+=======
+🔗 **Backend API:** https://smart-job-tracker-api.onrender.com/api/health
+>>>>>>> 6bb2471 (docs: add MIT license)
 
 > ⚡ First load may take 30-40 seconds if the server is waking up (free tier).
 
 ---
 
+<<<<<<< HEAD
 ## 📸 Screenshots
 
 ### 🏠 Landing Page
@@ -70,6 +75,8 @@ Smart Job Tracker keeps every application organized, scores your resume against 
 
 
 
+=======
+>>>>>>> 6bb2471 (docs: add MIT license)
 ## ✨ Features
 
 ### Core Tracking
@@ -133,6 +140,7 @@ Smart Job Tracker keeps every application organized, scores your resume against 
 
 ---
 
+<<<<<<< HEAD
 ## 📁 Project Structure
 
 ```text
@@ -371,3 +379,6 @@ Distributed under the MIT License.
   <p>If this project helped you, please give it a ⭐ on GitHub!</p>
   <p>Built with ❤️ for students who are tired of losing track of their job search.</p>
 </div>
+=======
+## 📁 Project Structure
+>>>>>>> 6bb2471 (docs: add MIT license)
