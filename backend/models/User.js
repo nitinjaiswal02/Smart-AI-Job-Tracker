@@ -1,26 +1,25 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
-
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Name is required'],
+      required: [true, "Name is required"],
       trim: true, // strips leading/trailing whitespace automatically
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
+      required: [true, "Email is required"],
       unique: true, // creates a unique index — no two users can share an email
       lowercase: true, // normalizes "Bob@Email.com" -> "bob@email.com"
       trim: true,
-      match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address'],
+      match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"],
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
-      minlength: [6, 'Password must be at least 6 characters'],
+      required: [true, "Password is required"],
+      minlength: [6, "Password must be at least 6 characters"],
       select: false, // excludes this field from query results BY DEFAULT
       // (you have to explicitly ask for it with .select('+password').
       // This means a stray `res.json(user)` somewhere in your code can
@@ -31,19 +30,26 @@ const userSchema = new mongoose.Schema(
       default: false, // used in Phase 11 (monetization)
     },
 
-    aiCallsToday: { // its a counter to track how many AI calls the user has made today. This is useful for implementing rate limiting or usage tracking for AI features.
+    aiCallsToday: {
+      // its a counter to track how many AI calls the user has made today. This is useful for implementing rate limiting or usage tracking for AI features.
       type: Number,
       default: 0,
     },
-    aiCallsDate: { // this field stores the date when the aiCallsToday counter was last reset. This is important for determining if a new day has started and whether the counter should be reset to 0.
+    aiCallsDate: {
+      // this field stores the date when the aiCallsToday counter was last reset. This is important for determining if a new day has started and whether the counter should be reset to 0.
       type: Date,
       default: Date.now,
     },
-
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpires: {
+      type: Date,
+    },
   },
   {
     timestamps: true, // automatically adds createdAt and updatedAt fields
-  }
+  },
 );
 
 // --- Pre-save hook ---
@@ -55,12 +61,12 @@ const userSchema = new mongoose.Schema(
 // Arrow functions don't get their own `this` — they inherit it from
 // whatever scope they were defined in. We need `this` to refer to the
 // specific user document being saved, which only a regular function gives us.
-userSchema.pre('save', async function (next) {
+userSchema.pre("save", async function (next) {
   // Only re-hash the password if it was actually changed. Without this
   // check, updating a user's name would also re-hash an ALREADY-hashed
   // password, corrupting it and locking the user out.
-  if (!this.isModified('password')) {
-    return next();
+  if (!this.isModified("password")) {
+    return;
   }
 
   // bcrypt.genSalt generates random data mixed into the hash so that two
@@ -78,6 +84,6 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
 export default User;
