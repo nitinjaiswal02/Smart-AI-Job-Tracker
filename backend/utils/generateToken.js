@@ -15,12 +15,14 @@ const generateToken = (res, userId) => {
     expiresIn: process.env.JWT_EXPIRES_IN || '30d',
   });
 
-  res.cookie('jwt', token, {
-    httpOnly: true, // not accessible via document.cookie in JS
-    secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
-    sameSite: 'strict', // cookie won't be sent on cross-site requests (CSRF defense)
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days, in milliseconds
-  });
+ res.cookie('jwt', token, {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+  // 'none' required for cross-origin cookies (Vercel → Render)
+  // 'strict' fine for same-origin (localhost dev)
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+});
 
   return token;
 };
