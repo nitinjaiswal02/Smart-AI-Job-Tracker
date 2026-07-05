@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { updateApplication, deleteApplication } from '../api/applications.js';
 
 const statusStyles = {
@@ -9,10 +10,57 @@ const statusStyles = {
   withdrawn: 'bg-slate-100 text-slate-500',
 };
 
+// Converts a stored Date/ISO string into the "YYYY-MM-DDTHH:mm" format
+// that a datetime-local input expects as its value.
+const toDatetimeLocalValue = (isoString) => {
+  const d = new Date(isoString);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 const ApplicationCard = ({ application, onUpdated, onDeleted }) => {
+  const [pickingDate, setPickingDate] = useState(false);
+  const [interviewDateInput, setInterviewDateInput] = useState('');
+
   const handleStatusChange = async (e) => {
-    const { data } = await updateApplication(application._id, { status: e.target.value });
+    const newStatus = e.target.value;
+
+    if (newStatus === 'interviewing' && !application.interviewDate) {
+      setPickingDate(true);
+      return;
+    }
+
+    const payload = { status: newStatus };
+    if (newStatus !== 'interviewing' && application.interviewDate) {
+      payload.interviewDate = null;
+    }
+
+    const { data } = await updateApplication(application._id, payload);
     onUpdated(data);
+  };
+
+  // New: opens the date picker pre-filled with the CURRENT interviewDate,
+  // so the user is editing the existing value instead of starting blank.
+  const handleChangeDateClick = () => {
+    setInterviewDateInput(toDatetimeLocalValue(application.interviewDate));
+    setPickingDate(true);
+  };
+
+  const handleConfirmInterviewDate = async () => {
+    if (!interviewDateInput) return;
+
+    const { data } = await updateApplication(application._id, {
+      status: 'interviewing',
+      interviewDate: interviewDateInput,
+    });
+    onUpdated(data);
+    setPickingDate(false);
+    setInterviewDateInput('');
+  };
+
+  const handleCancelPickingDate = () => {
+    setPickingDate(false);
+    setInterviewDateInput('');
   };
 
   const handleDelete = async () => {
@@ -33,6 +81,48 @@ const ApplicationCard = ({ application, onUpdated, onDeleted }) => {
       </div>
 
       {application.location && <p className="mt-2 text-xs text-slate-500">{application.location}</p>}
+
+      {/* Interview date row now has a "Change" link next to it */}
+      {application.status === 'interviewing' && application.interviewDate && !pickingDate && (
+        <p className="mt-2 flex items-center gap-2 text-xs font-medium text-amber-700">
+          Interview: {new Date(application.interviewDate).toLocaleString()}
+          <button
+            onClick={handleChangeDateClick}
+            className="text-[11px] font-medium text-amber-600 underline hover:text-amber-800"
+          >
+            Change
+          </button>
+        </p>
+      )}
+
+      {pickingDate && (
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <label className="block text-xs font-medium text-amber-800">
+            When is the interview?
+          </label>
+          <input
+            type="datetime-local"
+            value={interviewDateInput}
+            onChange={(e) => setInterviewDateInput(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-amber-300 px-2 py-1 text-xs"
+          />
+          <div className="mt-2 flex gap-2">
+            <button
+              onClick={handleConfirmInterviewDate}
+              disabled={!interviewDateInput}
+              className="rounded-lg bg-amber-600 px-3 py-1 text-xs font-medium text-white disabled:opacity-40"
+            >
+              Confirm
+            </button>
+            <button
+              onClick={handleCancelPickingDate}
+              className="rounded-lg px-3 py-1 text-xs font-medium text-slate-600 hover:underline"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="mt-4 flex items-center justify-between">
         <select
