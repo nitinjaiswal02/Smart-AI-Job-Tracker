@@ -1,37 +1,39 @@
-import { useState } from 'react';
-import { updateApplication, deleteApplication } from '../api/applications.js';
+import { useState } from "react";
+import { updateApplication, deleteApplication } from "../api/applications.js";
 
 const statusStyles = {
-  wishlist: 'bg-slate-100 text-slate-700',
-  applied: 'bg-blue-50 text-blue-700',
-  interviewing: 'bg-amber-50 text-amber-700',
-  offer: 'bg-emerald-50 text-emerald-700',
-  rejected: 'bg-rose-50 text-rose-700',
-  withdrawn: 'bg-slate-100 text-slate-500',
+  wishlist: "bg-slate-100 text-slate-700",
+  applied: "bg-blue-50 text-blue-700",
+  interviewing: "bg-amber-50 text-amber-700",
+  offer: "bg-emerald-50 text-emerald-700",
+  rejected: "bg-rose-50 text-rose-700",
+  withdrawn: "bg-slate-100 text-slate-500",
 };
 
 // Converts a stored Date/ISO string into the "YYYY-MM-DDTHH:mm" format
 // that a datetime-local input expects as its value.
+// ab hoga — local timezone use karega
 const toDatetimeLocalValue = (isoString) => {
   const d = new Date(isoString);
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  // getTimezoneOffset() returns difference in minutes (IST = -330)
+  // We subtract it to convert UTC → local time correctly
+  const localTime = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+  return localTime.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:mm"
 };
-
 const ApplicationCard = ({ application, onUpdated, onDeleted }) => {
   const [pickingDate, setPickingDate] = useState(false);
-  const [interviewDateInput, setInterviewDateInput] = useState('');
+  const [interviewDateInput, setInterviewDateInput] = useState("");
 
   const handleStatusChange = async (e) => {
     const newStatus = e.target.value;
 
-    if (newStatus === 'interviewing' && !application.interviewDate) {
+    if (newStatus === "interviewing" && !application.interviewDate) {
       setPickingDate(true);
       return;
     }
 
     const payload = { status: newStatus };
-    if (newStatus !== 'interviewing' && application.interviewDate) {
+    if (newStatus !== "interviewing" && application.interviewDate) {
       payload.interviewDate = null;
     }
 
@@ -50,17 +52,17 @@ const ApplicationCard = ({ application, onUpdated, onDeleted }) => {
     if (!interviewDateInput) return;
 
     const { data } = await updateApplication(application._id, {
-      status: 'interviewing',
+      status: "interviewing",
       interviewDate: interviewDateInput,
     });
     onUpdated(data);
     setPickingDate(false);
-    setInterviewDateInput('');
+    setInterviewDateInput("");
   };
 
   const handleCancelPickingDate = () => {
     setPickingDate(false);
-    setInterviewDateInput('');
+    setInterviewDateInput("");
   };
 
   const handleDelete = async () => {
@@ -75,25 +77,39 @@ const ApplicationCard = ({ application, onUpdated, onDeleted }) => {
           <h3 className="font-semibold text-slate-900">{application.role}</h3>
           <p className="text-sm text-slate-600">{application.company}</p>
         </div>
-        <span className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${statusStyles[application.status]}`}>
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${statusStyles[application.status]}`}
+        >
           {application.status}
         </span>
       </div>
 
-      {application.location && <p className="mt-2 text-xs text-slate-500">{application.location}</p>}
+      {application.location && (
+        <p className="mt-2 text-xs text-slate-500">{application.location}</p>
+      )}
 
       {/* Interview date row now has a "Change" link next to it */}
-      {application.status === 'interviewing' && application.interviewDate && !pickingDate && (
-        <p className="mt-2 flex items-center gap-2 text-xs font-medium text-amber-700">
-          Interview: {new Date(application.interviewDate).toLocaleString()}
-          <button
-            onClick={handleChangeDateClick}
-            className="text-[11px] font-medium text-amber-600 underline hover:text-amber-800"
-          >
-            Change
-          </button>
-        </p>
-      )}
+      {application.status === "interviewing" &&
+        application.interviewDate &&
+        !pickingDate && (
+          <p className="mt-2 flex items-center gap-2 text-xs font-medium text-amber-700">
+            {new Date(application.interviewDate).toLocaleString("en-IN", {
+              timeZone: "Asia/Kolkata",
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            })}
+            <button
+              onClick={handleChangeDateClick}
+              className="text-[11px] font-medium text-amber-600 underline hover:text-amber-800"
+            >
+              Change
+            </button>
+          </p>
+        )}
 
       {pickingDate && (
         <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
@@ -136,7 +152,10 @@ const ApplicationCard = ({ application, onUpdated, onDeleted }) => {
             </option>
           ))}
         </select>
-        <button onClick={handleDelete} className="text-xs font-medium text-rose-600 hover:underline">
+        <button
+          onClick={handleDelete}
+          className="text-xs font-medium text-rose-600 hover:underline"
+        >
           Delete
         </button>
       </div>
