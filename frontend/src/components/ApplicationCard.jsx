@@ -49,16 +49,24 @@ const ApplicationCard = ({ application, onUpdated, onDeleted }) => {
   };
 
   const handleConfirmInterviewDate = async () => {
-    if (!interviewDateInput) return;
+  if (!interviewDateInput) return;
 
-    const { data } = await updateApplication(application._id, {
-      status: "interviewing",
-      interviewDate: interviewDateInput,
-    });
-    onUpdated(data);
-    setPickingDate(false);
-    setInterviewDateInput("");
-  };
+  // datetime-local gives us "YYYY-MM-DDTHH:mm" — no timezone info.
+  // We must explicitly tell JavaScript this is LOCAL time (IST),
+  // then convert to UTC ISO string for the backend.
+  // new Date("2026-07-08T10:00") treats it as LOCAL time automatically
+  // but only in browser — Render server treats it as UTC. So we fix it:
+  const localDate = new Date(interviewDateInput);
+  const isoString = localDate.toISOString(); // converts to proper UTC ISO
+
+  const { data } = await updateApplication(application._id, {
+    status: 'interviewing',
+    interviewDate: isoString, // send proper UTC ISO string
+  });
+  onUpdated(data);
+  setPickingDate(false);
+  setInterviewDateInput('');
+};
 
   const handleCancelPickingDate = () => {
     setPickingDate(false);
