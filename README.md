@@ -44,7 +44,8 @@ Smart Job Tracker keeps every application organized, scores your resume against 
 
 ### 📊 Dashboard — Application Tracking
 
-<img width="1466" height="805" alt="Screenshot 2026-07-05 at 3 34 48 PM" src="https://github.com/user-attachments/assets/6d6511df-8a70-47bd-aea7-c50dfed8911e" />
+<img width="1287" height="798" alt="Screenshot 2026-07-07 at 6 42 56 PM" src="https://github.com/user-attachments/assets/b4d5b740-a626-4b2b-8fa5-6d2094dc9d0f" />
+
 
 
 ---
